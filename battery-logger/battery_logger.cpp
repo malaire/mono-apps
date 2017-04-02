@@ -33,6 +33,19 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+/* BEGIN AUTO-GENERATED CODE */
+// mV at 99%, 98%, ..., 1%
+const uint16_t BatteryLogger::battery_percent_mV[] = {
+  3957,3948,3941,3935,3928,3922,3915,3899,3890,3884,3878,3872,3866,3859,3854,
+  3847,3841,3835,3829,3824,3818,3812,3807,3793,3767,3759,3754,3748,3743,3738,
+  3733,3727,3722,3717,3712,3707,3702,3697,3696,3696,3694,3689,3686,3686,3686,
+  3684,3680,3677,3674,3671,3668,3665,3662,3660,3657,3654,3652,3649,3648,3646,
+  3644,3641,3639,3637,3636,3634,3632,3631,3629,3628,3626,3624,3622,3620,3618,
+  3616,3614,3604,3604,3588,3585,3585,3573,3562,3558,3553,3547,3543,3538,3535,
+  3532,3528,3524,3519,3511,3493,3473,3445,3379,0
+};
+/* END AUTO-GENERATED CODE */
+
 // ------------=============-------------------------------------------------------
 BatteryLogger::BatteryLogger(const char * filename, uint32_t autolog_interval_ms) :
 // ------------=============-------------------------------------------------------
@@ -55,13 +68,34 @@ void BatteryLogger::appendToLog(const char *line) {
   }
 }
 
+// --------------------===================---------------
+uint8_t BatteryLogger::calculatePercentage(uint16_t mV) {
+// --------------------===================---------------
+  // While charging (high mV) or just after reset (zero mV),
+  // battery percentage can't be determined -- just return 100
+  // - note that normal algorithm below never returns 100 since it 'rounds down'
+  if (mV > 4200 || mV == 0) return 100;
+
+  // find first value less than mV
+  int n = 0;
+  while (battery_percent_mV[n] >= mV) {
+    n++;
+  }
+  // if previous value equals mV, select it
+  if (n > 0 && battery_percent_mV[n - 1] == mV) n--;
+
+  return 100 - PERCENT_STEP_SIZE * (n + 1);
+}
+
 // -----------------==========----
 void BatteryLogger::logVoltage() {
 // -----------------==========----
   uint16_t mV = readVoltage();
+  uint16_t percentage = calculatePercentage(mV);
 
   char buf[99];
-  sprintf(buf, "%s %"PRIu16" mV\n", DateTime::now().toTimeString()(), mV);
+  sprintf(buf, "%s %"PRIu16" mV (%2d %%)\n",
+    DateTime::now().toTimeString()(), mV, percentage);
   appendToLog(buf);
 }
 

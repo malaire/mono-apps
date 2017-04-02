@@ -38,6 +38,7 @@ using namespace mono::ui;
 class AppController : public IApplication {
   SDFileSystem  sd_fs;
   TextLabelView label;
+  TextLabelView percentageLabel;
   Timer         timer;
   BatteryLogger logger;
 

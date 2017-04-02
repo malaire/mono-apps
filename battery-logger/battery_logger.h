@@ -51,9 +51,15 @@ public:
       RAW_ADC_MAX * CORRECTION_FACTOR
     / CORRECTION_DENOMINATOR * REFERENCE_VOLTAGE;
 
+  /* BEGIN AUTO-GENERATED CODE */
+  static const uint16_t PERCENT_STEP_SIZE = 1;
+  static const uint16_t battery_percent_mV[];
+  /* END AUTO-GENERATED CODE */
+
   BatteryLogger(const char * filename, uint32_t autolog_interval_ms);
 
   void            appendToLog(const char *line);
+  static uint8_t  calculatePercentage(uint16_t mV);
   void            logVoltage();
   static uint16_t readVoltage();    
 };

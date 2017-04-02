@@ -37,11 +37,14 @@ AppController::AppController() :
 // ------------=============----
   sd_fs(SD_SPI_MOSI, SD_SPI_MISO, SD_SPI_CLK, SD_SPI_CS, "sd"),
   label(Rect(0,100,176,20), "Starting ..."),
+  percentageLabel(Rect(0,50,176,20), "-- %"),
   timer(DISPLAY_UPDATE_INTERVAL_MS),
   logger(LOG_FILE, LOG_INTERVAL_MS)
 {
   label.setAlignment(TextLabelView::ALIGN_CENTER);
   label.setTextColor(display::TurquoiseColor);
+  percentageLabel.setAlignment(TextLabelView::ALIGN_CENTER);
+  percentageLabel.setTextColor(display::TurquoiseColor);
 }
 
 // -----------------=================----
@@ -49,6 +52,7 @@ void AppController::monoWakeFromReset() {
 // -----------------=================----
   logger.appendToLog("--- RESET ---\n");
   label.show();
+  percentageLabel.show();
   timer.setCallback<AppController>(this, &AppController::updateDisplay);
   timer.Start();
 }
@@ -67,8 +71,12 @@ void AppController::monoWillGotoSleep() {}
 void AppController::updateDisplay() {
 // -----------------=============----
   uint16_t mV = BatteryLogger::readVoltage();
+  uint16_t percentage = BatteryLogger::calculatePercentage(mV);
   
   char buf[99];
   sprintf(buf, "%s %"PRIu16" mV", DateTime::now().toTimeString()(), mV);  
   label.setText(buf);
+
+  sprintf(buf, "%"PRIu16" %%", percentage);
+  percentageLabel.setText(buf);
 }
